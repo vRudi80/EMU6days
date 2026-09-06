@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
@@ -23,9 +24,7 @@ def text(el):
 
 def load_discovered_athletes():
     if not ATHLETES_FILE.exists():
-        raise FileNotFoundError(
-            "data/athletes.json is missing. Run scripts/discover.py first."
-        )
+        raise FileNotFoundError("data/athletes.json is missing. Run scripts/discover.py first.")
     with ATHLETES_FILE.open("r", encoding="utf-8") as f:
         athletes = json.load(f)
     if len(athletes) < 50:
@@ -65,7 +64,6 @@ def parse_laps(bib):
 
     if not name:
         page_text = soup.get_text(" ", strip=True)
-        import re
         m = re.search(r"Name:\s*(.*?)\s+Bib:\s*(\d+)\s+Laps:\s*(\d+)", page_text)
         if m:
             name = m.group(1).strip()
@@ -101,35 +99,6 @@ def parse_laps(bib):
 
 
 def merge_athlete(meta, parsed, previous):
-    """Merge newly downloaded laps into the already published history."""
-    old_points = previous.get("points", []) if previous else []
-    old_by_lap = {}
-    for point in old_points:
-        # Older data only has t/km, so lap is optional.
-        if "lap" in point:
-            old_by_lap[int(point["lap"])] = point
-
-    new_by_lap = {}
-    if parsed:
-        for lap in parsed["laps"]:
-            new_by_lap[int(lap["lap"])] = {
-                "lap": int(lap["lap"]),
-                "t": lap["readTime"],
-                "km": lap["km"],
-            }
-
-    # If old points came from the previous format, keep them. New data replaces
-    # the same lap when available and adds only genuinely new laps.
-    merged = list(old_by_lap.values())
-    merged_by_key = {p.get("lap"): p for p in merged if p.get("lap") is not None}
-    for lap, point in new_by_lap.items():
-        merged_by_key[lap] = point
-
-    # Preserve legacy points without lap numbers, then append new/updated laps.
-    legacy = [p for p in old_points if p.get("lap") is None]
-    points = legacy + list(merged_by_key.values())
-    points.sort(key=lambda p: (p.get("t", ""), p.get("lap", 0)))
-
     result = dict(meta)
     if previous:
         for key in ("name", "country", "category"):
@@ -137,17 +106,23 @@ def merge_athlete(meta, parsed, previous):
                 result[key] = previous[key]
 
     if parsed:
+        # The Köridő individual page currently returns the complete lap history.
+        # Replace the stored history with that authoritative list, while the
+        # scraper only contacts the already discovered athlete pages.
         result["name"] = result.get("name") or parsed["name"]
-        result["points"] = points
+        result["points"] = [
+            {"lap": x["lap"], "t": x["readTime"], "km": x["km"]}
+            for x in parsed["laps"]
+        ]
         last = parsed["laps"][-1]
-        result["laps"] = len(points)
+        result["laps"] = len(parsed["laps"])
         result["km"] = last["km"]
         result["lastLap"] = last["lapTime"]
         result["lastReadTime"] = last["readTime"]
     else:
-        # Keep an athlete visible even if their page is temporarily unavailable.
-        result["points"] = points
-        result["laps"] = previous.get("laps", len(points)) if previous else len(points)
+        # Keep the athlete visible if a single request temporarily fails.
+        result["points"] = previous.get("points", []) if previous else []
+        result["laps"] = previous.get("laps", len(result["points"])) if previous else len(result["points"])
         result["km"] = previous.get("km", 0) if previous else 0
         result["lastLap"] = previous.get("lastLap", "") if previous else ""
         result["lastReadTime"] = previous.get("lastReadTime", "") if previous else ""
@@ -164,10 +139,7 @@ def main():
 
     parsed_by_bib = {}
     with ThreadPoolExecutor(max_workers=WORKERS) as ex:
-        futures = {
-            ex.submit(parse_laps, int(a["bib"])): int(a["bib"])
-            for a in discovered
-        }
+        futures = {ex.submit(parse_laps, int(a["bib"])): int(a["bib"]) for a in discovered}
         for future in as_completed(futures):
             bib = futures[future]
             try:
