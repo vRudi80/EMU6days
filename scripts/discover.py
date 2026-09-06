@@ -1,10 +1,11 @@
 import json
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 BASE = "https://korido.hu"
-RESULT = BASE + "/2026EMU6_result?rc=3600&tbl=1"
+# This is the live individual-results view that is visible in a normal browser.
+RESULT = BASE + "/2026EMU6_result?team=1"
 OUT = Path("data/athletes.json")
 
 
@@ -17,30 +18,64 @@ def main():
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto(RESULT, wait_until="domcontentloaded", timeout=60000)
-
-        selector = "a[href*='resultTableLaps.php?bib=']"
-        page.wait_for_function(
-            "selector => document.querySelectorAll(selector).length > 0",
-            arg=selector,
-            timeout=60000,
+        page = browser.new_page(
+            viewport={"width": 1440, "height": 1200},
+            user_agent=(
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+            ),
         )
+
+        # The result table is populated client-side, so give the page time to
+        # finish its own JavaScript update cycle. Do not depend on a fragile
+        # wait_for_function signature or on a specific pagination state.
+        page.goto(RESULT, wait_until="domcontentloaded", timeout=60000)
+        try:
+            page.wait_for_load_state("networkidle", timeout=15000)
+        except PlaywrightTimeoutError:
+            pass
+        page.wait_for_timeout(10000)
+
+        selector = "a[href*='resultTableLaps.php']"
+        count = page.locator(selector).count()
+
+        # One reload helps when the live timing page initially renders before
+        # its table data request has completed.
+        if count == 0:
+            page.reload(wait_until="domcontentloaded", timeout=60000)
+            try:
+                page.wait_for_load_state("networkidle", timeout=15000)
+            except PlaywrightTimeoutError:
+                pass
+            page.wait_for_timeout(10000)
+            count = page.locator(selector).count()
+
+        if count == 0:
+            # Fail with useful diagnostics rather than silently producing an
+            # incomplete athlete list.
+            title = page.title()
+            body = clean(page.locator("body").inner_text())[:4000]
+            print(f"Discovery diagnostics: title={title!r}, links={count}")
+            print(body)
+            raise RuntimeError(
+                "No athlete lap links were rendered by the Köridő page. "
+                "The live result table may be temporarily unavailable."
+            )
 
         records = page.locator(selector).evaluate_all(
             """
             links => links.map(a => {
                 const href = a.getAttribute('href') || '';
-                // Bibs are not necessarily numeric: the live table contains
-                // values such as 977, 1211 and W21.
                 const m = href.match(/resultTableLaps\\.php\\?bib=([^&#]+)/);
                 const row = a.closest('tr');
                 const cells = row ? Array.from(row.querySelectorAll('td')).map(x => (x.innerText || '').trim()) : [];
+                const nameCell = a.closest('td');
+                const nameIndex = nameCell && row ? Array.from(row.querySelectorAll('td')).indexOf(nameCell) : -1;
                 return {
                     bib: m ? decodeURIComponent(m[1]) : null,
                     name: (a.innerText || '').trim(),
-                    country: cells.length > 6 ? cells[6] : '',
-                    category: cells.length > 7 ? cells[7] : ''
+                    country: nameIndex >= 0 && cells[nameIndex + 1] ? cells[nameIndex + 1] : '',
+                    category: nameIndex >= 0 && cells[nameIndex + 2] ? cells[nameIndex + 2] : ''
                 };
             })
             """
