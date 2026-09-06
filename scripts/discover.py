@@ -1,5 +1,4 @@
 import json
-import re
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
@@ -11,6 +10,10 @@ OUT = Path("data/athletes.json")
 
 def clean(value):
     return " ".join((value or "").split())
+
+
+def norm(value):
+    return clean(value).lower().replace(" ", "")
 
 
 def main():
@@ -33,111 +36,107 @@ def main():
             pass
         page.wait_for_timeout(10000)
 
-        # The individual-results table is rendered client-side. In the live
-        # page the athlete name is not necessarily an <a>, so do not depend on
-        # resultTableLaps.php links being present.
-        rows = page.locator("table tbody tr")
-        count = rows.count()
+        # Locate the actual individual-results table by its column headers.
+        tables = page.locator("table")
+        table_count = tables.count()
+        target = None
+        headers = None
 
-        # If the table is paginated by DataTables, temporarily switch it to
-        # show all rows. This is intentionally done in the browser because the
-        # page's data source is client-side.
+        for i in range(table_count):
+            candidate = tables.nth(i)
+            hs = candidate.locator("thead th").all_inner_texts()
+            normalized = [norm(h) for h in hs]
+            if "bibnumber" in normalized and "name" in normalized:
+                target = candidate
+                headers = [clean(h) for h in hs]
+                break
+
+        if target is None:
+            title = page.title()
+            body = clean(page.locator("body").inner_text())[:6000]
+            print(f"Discovery diagnostics: title={title!r}, tables={table_count}")
+            print(body)
+            browser.close()
+            raise RuntimeError("Could not locate the Köridő individual-results table.")
+
+        # DataTables normally keeps only one page in the DOM. Ask the live
+        # DataTable instance to render all rows first; the fallback below can
+        # still walk through pages if that is not supported.
         try:
-            page.evaluate(
+            target.evaluate(
                 """
-                () => {
-                    if (window.jQuery && jQuery.fn && jQuery.fn.dataTable) {
-                        jQuery.fn.dataTable.tables({api: true}).each(function() {
-                            try { this.page.len(-1).draw(false); } catch (e) {}
-                        });
+                table => {
+                    if (window.jQuery && jQuery.fn && jQuery.fn.dataTable &&
+                        jQuery.fn.dataTable.isDataTable(table)) {
+                        jQuery(table).DataTable().page.len(-1).draw(false);
                     }
                 }
                 """
             )
             page.wait_for_timeout(3000)
-            count = rows.count()
         except Exception:
             pass
 
-        records = rows.evaluate_all(
-            """
-            trs => trs.map(tr => {
-                const cells = Array.from(tr.querySelectorAll('td'))
-                    .map(td => (td.innerText || '').trim());
-                return cells;
-            })
-            """
-        )
+        bib_index = next(i for i, h in enumerate(headers) if norm(h) == "bibnumber")
+        name_index = next(i for i, h in enumerate(headers) if norm(h) == "name")
+        country_index = next((i for i, h in enumerate(headers) if norm(h) == "country"), None)
+        category_index = next((i for i, h in enumerate(headers) if norm(h) == "category"), None)
 
-        # If DataTables pagination is still active, collect the visible pages
-        # by clicking its Next button until it becomes disabled.
-        seen_pages = set()
-        def collect_page():
-            current = rows.evaluate_all(
-                "trs => trs.map(tr => Array.from(tr.querySelectorAll('td')).map(td => (td.innerText || '').trim()))"
+        def collect_rows():
+            return target.locator("tbody tr").evaluate_all(
+                """
+                trs => trs.map(tr => Array.from(tr.querySelectorAll('td'))
+                    .map(td => (td.innerText || '').trim()))
+                """
             )
-            return current
 
-        all_rows = list(records)
-        for _ in range(30):
-            page_key = "\n".join("|".join(r) for r in collect_page())
-            if page_key in seen_pages:
+        all_rows = []
+        seen_page_keys = set()
+
+        for _ in range(40):
+            current = collect_rows()
+            page_key = "\n".join("|".join(r) for r in current)
+            if page_key in seen_page_keys:
                 break
-            seen_pages.add(page_key)
+            seen_page_keys.add(page_key)
+            all_rows.extend(current)
 
-            next_buttons = page.locator(
+            next_buttons = target.locator(
                 ".dataTables_paginate .next, .paginate_button.next, "
                 "button[aria-label*='Next'], a[aria-label*='Next']"
             )
             if next_buttons.count() == 0:
                 break
+
             nxt = next_buttons.first
             cls = (nxt.get_attribute("class") or "").lower()
-            disabled = nxt.is_disabled() if nxt.evaluate("el => 'disabled' in el") else False
-            if disabled or "disabled" in cls:
+            disabled_attr = nxt.get_attribute("disabled") is not None
+            if disabled_attr or "disabled" in cls:
                 break
+
             try:
                 nxt.click(timeout=3000)
-                page.wait_for_timeout(500)
+                page.wait_for_timeout(700)
             except Exception:
                 break
-            all_rows.extend(collect_page())
-
-        if not all_rows:
-            title = page.title()
-            body = clean(page.locator("body").inner_text())[:6000]
-            print(f"Discovery diagnostics: title={title!r}, table_rows={count}")
-            print(body)
-            browser.close()
-            raise RuntimeError("No rendered athlete rows were found on the Köridő individual-results page.")
 
         browser.close()
 
     by_bib = {}
-    bib_re = re.compile(r"^(?:\d+|[A-Za-z]+\d+)$")
 
     for cells in all_rows:
-        if len(cells) < 5:
-            continue
-
-        # Current header order is: Pos, Category pos, age-group pos,
-        # Bibnumber, Name, Country, Category, ... . Find the bib rather than
-        # relying on a hard-coded column index.
-        bib_index = None
-        for i, value in enumerate(cells[:8]):
-            if bib_re.fullmatch(clean(value)):
-                bib_index = i
-                break
-        if bib_index is None or bib_index + 1 >= len(cells):
+        if bib_index >= len(cells) or name_index >= len(cells):
             continue
 
         bib = clean(cells[bib_index])
-        name = clean(cells[bib_index + 1])
-        if not name or name.lower() in {"name", "country"}:
+        name = clean(cells[name_index])
+        if not bib or not name or norm(name) in {"name", "country"}:
             continue
 
-        country = clean(cells[bib_index + 2]) if bib_index + 2 < len(cells) else ""
-        category = clean(cells[bib_index + 3]) if bib_index + 3 < len(cells) else ""
+        # Keep the Bibnumber column as the identity. The first numeric columns
+        # are ranking positions, not bib numbers.
+        country = clean(cells[country_index]) if country_index is not None and country_index < len(cells) else ""
+        category = clean(cells[category_index]) if category_index is not None and category_index < len(cells) else ""
 
         by_bib[bib] = {
             "bib": bib,
