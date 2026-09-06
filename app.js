@@ -14,12 +14,22 @@ async function load() {
   render();
 }
 
+function countryCode(value) {
+  const s = String(value || "").trim().toUpperCase();
+  const m = s.match(/^([A-Z]{3})[_-]/);
+  return m ? m[1] : s;
+}
+
+function isHungarian(value) {
+  return countryCode(value) === "HUN";
+}
+
 function filteredAthletes() {
   const search = $("search").value.trim().toLowerCase();
   const hu = $("hungarians").checked;
   let a = raceData.athletes.filter(x =>
     (!search || x.name.toLowerCase().includes(search) || String(x.bib).includes(search)) &&
-    (!hu || x.country === "HUN")
+    (!hu || isHungarian(x.country))
   );
   a.sort((x,y) => y.km - x.km);
   const limit = Number($("limit").value);
@@ -80,11 +90,11 @@ if (!window._adapterLoaded) {
 function drawTable(athletes) {
   $("ranking").innerHTML = athletes.map((a,i)=>`<tr>
     <td>${i+1}</td><td><strong>${escapeHtml(a.name)}</strong> <span class="muted">#${a.bib}</span></td>
-    <td>${a.country||""}</td><td>${a.category||""}</td>
+    <td>${escapeHtml(countryCode(a.country))}</td><td>${escapeHtml(a.category||"")}</td>
     <td>${a.laps}</td><td>${Number(a.km).toFixed(3)}</td>
-    <td>${a.lastLap||""}</td><td>${a.lastReadTime ? new Date(a.lastReadTime).toLocaleString("hu-HU") : ""}</td>
+    <td>${escapeHtml(a.lastLap||"")}</td><td>${a.lastReadTime ? new Date(a.lastReadTime).toLocaleString("hu-HU") : ""}</td>
   </tr>`).join("");
 }
-function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 ["search","limit","hungarians"].forEach(id=>$(id).addEventListener("input",render));
 $("reset").addEventListener("click",()=>{$("search").value="";$("limit").value="20";$("hungarians").checked=false;render()});
