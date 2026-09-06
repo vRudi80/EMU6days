@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>EMU 6-Day Race – Live Race Analyzer</title>
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -17,87 +17,24 @@
       </div>
       <div class="header-right">
         <div id="status" class="status">Adatok betöltése…</div>
-        <div class="language-switch" aria-label="Language">
-          <button type="button" class="lang-btn active" data-lang="hu">HU</button>
-          <button type="button" class="lang-btn" data-lang="en">EN</button>
-        </div>
+        <div class="language-switch" aria-label="Language"><button type="button" class="lang-btn active" data-lang="hu">HU</button><button type="button" class="lang-btn" data-lang="en">EN</button></div>
       </div>
     </header>
-
-    <a class="promo" href="https://photawesome.com" target="_blank" rel="noopener noreferrer">
-      <div class="promo-icon">📸</div>
-      <div class="promo-copy">
-        <strong data-i18n="promoTitle">Játssz a fotóiddal! – Photawesome</strong>
-        <span data-i18n="promoText">Fotós játék és közösségi oldal, ahol a fényképezésből játék lesz.</span>
-      </div>
-      <span class="promo-button" data-i18n="promoButton">Megnézem →</span>
-    </a>
-
+    <a class="promo" href="https://photawesome.com" target="_blank" rel="noopener noreferrer"><div class="promo-icon">📸</div><div class="promo-copy"><strong data-i18n="promoTitle">Játssz a fotóiddal! – Photawesome</strong><span data-i18n="promoText">Fotós játék és közösségi oldal, ahol a fényképezésből játék lesz.</span></div><span class="promo-button" data-i18n="promoButton">Megnézem →</span></a>
     <section class="controls">
-      <label><span data-i18n="searchLabel">Versenyző keresése</span>
-        <input id="search" type="search" placeholder="Név vagy rajtszám…" data-i18n-placeholder="searchPlaceholder">
-      </label>
-      <label><span data-i18n="displayLabel">Megjelenítés</span>
-        <select id="limit">
-          <option value="10" data-i18n="top10">Top 10</option>
-          <option value="20" selected data-i18n="top20">Top 20</option>
-          <option value="50" data-i18n="top50">Top 50</option>
-          <option value="100" data-i18n="top100">Top 100</option>
-          <option value="0" data-i18n="everyone">Mindenki</option>
-        </select>
-      </label>
+      <label><span data-i18n="searchLabel">Versenyző keresése</span><input id="search" type="search" placeholder="Név vagy rajtszám…" data-i18n-placeholder="searchPlaceholder"></label>
+      <label><span data-i18n="displayLabel">Megjelenítés</span><select id="limit"><option value="10" data-i18n="top10">Top 10</option><option value="20" selected data-i18n="top20">Top 20</option><option value="50" data-i18n="top50">Top 50</option><option value="100" data-i18n="top100">Top 100</option><option value="0" data-i18n="everyone">Mindenki</option></select></label>
       <label class="check"><input id="hungarians" type="checkbox"> <span data-i18n="hungarians">Csak magyarok</span></label>
       <button id="reset" data-i18n="reset">Szűrők törlése</button>
     </section>
-
     <section class="card chart-card">
-      <div class="chart-head">
-        <div>
-          <h2 data-i18n="chartTitle">Megtett táv az idő függvényében</h2>
-          <p class="muted" data-i18n="chartSubtitle">A vízszintes szakaszok pihenést/állást jeleznek.</p>
-        </div>
-        <div class="legend-note" data-i18n="legendNote">Kattints egy névre a ki-/bekapcsoláshoz.</div>
-      </div>
-
-      <div class="chart-filters">
-        <label><span data-i18n="timeRangeLabel">Időintervallum</span>
-          <select id="timeRange">
-            <option value="24h" selected data-i18n="last24">Utolsó 24 óra</option>
-            <option value="full" data-i18n="fullRace">Teljes verseny</option>
-            <option value="custom" data-i18n="customRange">Egyéni időszak</option>
-          </select>
-        </label>
-        <div id="customRange" class="custom-range" hidden>
-          <label><span data-i18n="rangeStart">Kezdete</span>
-            <input id="rangeStart" type="datetime-local">
-          </label>
-          <label><span data-i18n="rangeEnd">Vége</span>
-            <input id="rangeEnd" type="datetime-local">
-          </label>
-          <button id="applyRange" type="button" data-i18n="apply">Alkalmaz</button>
-        </div>
-      </div>
-
+      <div class="chart-head"><div><h2 data-i18n="chartTitle">Megtett táv az idő függvényében</h2><p class="muted" data-i18n="chartSubtitle">A vízszintes szakaszok pihenést/állást jeleznek.</p></div><div class="legend-note" data-i18n="legendNote">Kattints egy névre a ki-/bekapcsoláshoz.</div></div>
+      <div class="chart-filters"><label><span data-i18n="timeRangeLabel">Időintervallum</span><select id="timeRange"><option value="24h" selected data-i18n="last24">Utolsó 24 óra</option><option value="full" data-i18n="fullRace">Teljes verseny</option><option value="custom" data-i18n="customRange">Egyéni időszak</option></select></label><div id="customRange" class="custom-range" hidden><label><span data-i18n="rangeStart">Kezdete</span><input id="rangeStart" type="datetime-local"></label><label><span data-i18n="rangeEnd">Vége</span><input id="rangeEnd" type="datetime-local"></label><button id="applyRange" type="button" data-i18n="apply">Alkalmaz</button></div></div>
       <div class="chart-wrap"><canvas id="raceChart"></canvas></div>
     </section>
-
-    <section class="card">
-      <h2 data-i18n="rankingTitle">Aktuális állás</h2>
-      <div class="table-wrap">
-        <table>
-          <thead><tr>
-            <th data-i18n="rank">#</th><th data-i18n="athlete">Versenyző</th><th data-i18n="country">Ország</th><th data-i18n="category">Kategória</th><th data-i18n="laps">Kör</th><th data-i18n="km">Km</th><th data-i18n="lastLap">Utolsó kör</th><th data-i18n="lastUpdate">Utolsó frissítés</th>
-          </tr></thead>
-          <tbody id="ranking"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <footer>
-      <span data-i18n="source">Adatforrás: Köridő</span>
-      <span id="updated"></span>
-    </footer>
+    <section class="card"><h2 data-i18n="rankingTitle">Aktuális állás</h2><div class="table-wrap"><table><thead><tr><th data-i18n="rank">#</th><th data-i18n="athlete">Versenyző</th><th data-i18n="country">Ország</th><th data-i18n="category">Kategória</th><th data-i18n="laps">Kör</th><th data-i18n="km">Km</th><th data-i18n="lastLap">Utolsó kör</th></tr></thead><tbody id="ranking"></tbody></table></div></section>
+    <footer><span data-i18n="source">Adatforrás: Köridő</span><span id="updated"></span></footer>
   </main>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
