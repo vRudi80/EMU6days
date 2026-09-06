@@ -15,9 +15,7 @@ async function load() {
 }
 
 function countryCode(value) {
-  const s = String(value || "").trim().toUpperCase();
-  const m = s.match(/^([A-Z]{3})[_-]/);
-  return m ? m[1] : s;
+  return String(value || "").trim().toUpperCase().slice(0, 3);
 }
 
 function isHungarian(value) {
