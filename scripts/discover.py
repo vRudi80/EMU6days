@@ -20,7 +20,6 @@ def main():
         page = browser.new_page()
         page.goto(RESULT, wait_until="domcontentloaded", timeout=60000)
 
-        # The individual-result links are rendered by the page's JavaScript.
         selector = "a[href*='resultTableLaps.php?bib=']"
         page.wait_for_function(
             "selector => document.querySelectorAll(selector).length > 0",
@@ -32,11 +31,13 @@ def main():
             """
             links => links.map(a => {
                 const href = a.getAttribute('href') || '';
-                const m = href.match(/resultTableLaps\\.php\\?bib=(\\d+)/);
+                // Bibs are not necessarily numeric: the live table contains
+                // values such as 977, 1211 and W21.
+                const m = href.match(/resultTableLaps\\.php\\?bib=([^&#]+)/);
                 const row = a.closest('tr');
                 const cells = row ? Array.from(row.querySelectorAll('td')).map(x => (x.innerText || '').trim()) : [];
                 return {
-                    bib: m ? Number(m[1]) : null,
+                    bib: m ? decodeURIComponent(m[1]) : null,
                     name: (a.innerText || '').trim(),
                     country: cells.length > 6 ? cells[6] : '',
                     category: cells.length > 7 ? cells[7] : ''
@@ -48,11 +49,11 @@ def main():
 
     by_bib = {}
     for item in records:
-        bib = item.get("bib")
+        bib = clean(item.get("bib"))
         if not bib:
             continue
-        by_bib[int(bib)] = {
-            "bib": int(bib),
+        by_bib[bib] = {
+            "bib": bib,
             "name": clean(item.get("name")),
             "country": clean(item.get("country")),
             "category": clean(item.get("category")),
@@ -60,7 +61,9 @@ def main():
 
     athletes = sorted(by_bib.values(), key=lambda x: x["bib"])
     if len(athletes) < 50:
-        raise RuntimeError(f"Discovery returned only {len(athletes)} athletes; refusing to save an incomplete list")
+        raise RuntimeError(
+            f"Discovery returned only {len(athletes)} athletes; refusing to save an incomplete list"
+        )
 
     with OUT.open("w", encoding="utf-8") as f:
         json.dump(athletes, f, ensure_ascii=False, indent=2)
