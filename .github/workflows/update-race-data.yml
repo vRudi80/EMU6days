@@ -2,6 +2,10 @@ name: Update race data
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - "scripts/scrape.py"
+      - ".github/workflows/update-race-data.yml"
   schedule:
     - cron: "*/15 * * * *"
 
