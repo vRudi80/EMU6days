@@ -32,9 +32,9 @@
       <div class="chart-filters"><label><span data-i18n="timeRangeLabel">Időintervallum</span><select id="timeRange"><option value="24h" selected data-i18n="last24">Utolsó 24 óra</option><option value="full" data-i18n="fullRace">Teljes verseny</option><option value="custom" data-i18n="customRange">Egyéni időszak</option></select></label><div id="customRange" class="custom-range" hidden><label><span data-i18n="rangeStart">Kezdete</span><input id="rangeStart" type="datetime-local"></label><label><span data-i18n="rangeEnd">Vége</span><input id="rangeEnd" type="datetime-local"></label><button id="applyRange" type="button" data-i18n="apply">Alkalmaz</button></div></div>
       <div class="chart-wrap"><canvas id="raceChart"></canvas></div>
     </section>
-    <section class="card"><h2 data-i18n="rankingTitle">Aktuális állás</h2><div class="table-wrap"><table><thead><tr><th data-i18n="rank">#</th><th data-i18n="athlete">Versenyző</th><th data-i18n="country">Ország</th><th data-i18n="category">Kategória</th><th data-i18n="laps">Kör</th><th data-i18n="km">Km</th><th data-i18n="lastLap">Utolsó kör</th></tr></thead><tbody id="ranking"></tbody></table></div></section>
+    <section class="card"><h2 data-i18n="rankingTitle">Aktuális állás</h2><div class="table-wrap"><table><thead><tr><th data-i18n="rank">#</th><th data-i18n="athlete">Versenyző</th><th data-i18n="country">Ország</th><th data-i18n="category">Kategória</th><th data-i18n="laps">Kör</th><th data-i18n="km">Km</th><th data-i18n="lastLap">Utolsó kör</th><th data-i18n="raceHour">Versenyóra</th><th data-i18n="racePace">Versenytempó</th><th data-i18n="lastLapPace">Utolsó kör tempó</th></tr></thead><tbody id="ranking"></tbody></table></div></section>
     <footer><span data-i18n="source">Adatforrás: Köridő</span><span id="updated"></span></footer>
   </main>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
