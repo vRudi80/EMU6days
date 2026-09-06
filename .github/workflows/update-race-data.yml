@@ -27,12 +27,13 @@ jobs:
       - name: Install scraper dependencies
         run: pip install requests beautifulsoup4
 
-      - name: Discover athletes once
-        if: ${{ !hashFiles('data/athletes.json') }}
+      - name: Discover athletes once per discovery version
+        if: ${{ !hashFiles('data/discovery.version') }}
         run: |
           pip install playwright
           python -m playwright install --with-deps chromium
           python scripts/discover.py
+          echo "2" > data/discovery.version
 
       - name: Scrape known athletes
         run: python scripts/scrape.py
@@ -41,7 +42,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/race.json data/athletes.json
+          git add data/race.json data/athletes.json data/discovery.version
           if git diff --cached --quiet; then
             echo "No data changes"
           else
