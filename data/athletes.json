@@ -1,650 +1,650 @@
 [
   {
     "bib": "1",
-    "name": "1",
-    "country": "1",
-    "category": "Simen Holvik"
+    "name": "Simen Holvik",
+    "country": "NOR_M",
+    "category": "M45"
   },
   {
     "bib": "10",
-    "name": "1",
-    "country": "26",
-    "category": "Christian Mauduit"
+    "name": "Flemming Blaabjerg",
+    "country": "DEN_M",
+    "category": "M60"
   },
   {
     "bib": "100",
-    "name": "10",
-    "country": "61",
-    "category": "Gary Jackets"
+    "name": "Pál Bozó",
+    "country": "HUN_M",
+    "category": "M85"
   },
   {
     "bib": "101",
-    "name": "3",
-    "country": "27",
-    "category": "Yoko Kikuchi"
+    "name": "Melissa Montague",
+    "country": "GBR_W",
+    "category": "W50"
   },
   {
     "bib": "102",
-    "name": "5",
-    "country": "51",
-    "category": "Rudibert Beck"
+    "name": "Anagnostis Kokonias",
+    "country": "GRE_M",
+    "category": "M75"
   },
   {
     "bib": "103",
-    "name": "1",
-    "country": "36",
-    "category": "Kathy Crilley"
-  },
-  {
-    "bib": "104",
-    "name": "4",
-    "country": "35",
-    "category": "Santiago Hitos Olivera"
+    "name": "Soňa Macejáková",
+    "country": "SVK_W",
+    "category": "W70"
   },
   {
     "bib": "105",
-    "name": "6",
-    "country": "49",
-    "category": "David Hoben"
-  },
-  {
-    "bib": "106",
-    "name": "2",
-    "country": "98",
-    "category": "Bill Heldenbrand"
+    "name": "Yen Nguyen",
+    "country": "USA_W",
+    "category": "W60"
   },
   {
     "bib": "107",
-    "name": "15",
-    "country": "65",
-    "category": "Rex Brillantes"
-  },
-  {
-    "bib": "108",
-    "name": "3",
-    "country": "54",
-    "category": "Mireille Cormier"
+    "name": "Yuka Ikeda",
+    "country": "JPN_W",
+    "category": "W60"
   },
   {
     "bib": "11",
-    "name": "2",
-    "country": "17",
-    "category": "Mario Čeliković"
+    "name": "Michael Coughlan",
+    "country": "IRL_M",
+    "category": "M55"
   },
   {
     "bib": "12",
-    "name": "2",
-    "country": "19",
-    "category": "Merijn Geerts"
+    "name": "Niklas Karlsson",
+    "country": "SWE_M",
+    "category": "M50"
+  },
+  {
+    "bib": "1211",
+    "name": "Tomomi Bitoh",
+    "country": "JPN_W",
+    "category": "W35"
   },
   {
     "bib": "13",
-    "name": "3",
-    "country": "713",
-    "category": "David Kellner"
+    "name": "György Keresztes",
+    "country": "HUN_M",
+    "category": "M45"
   },
   {
     "bib": "14",
-    "name": "1",
-    "country": "47",
-    "category": "Marcela Bayerová"
-  },
-  {
-    "bib": "15",
-    "name": "3",
-    "country": "93",
-    "category": "Endymion Kasanardjo"
+    "name": "Klaus Pirker Jørgensen",
+    "country": "DEN_M",
+    "category": "M60"
   },
   {
     "bib": "16",
-    "name": "1",
-    "country": "1211",
-    "category": "Tomomi Bitoh"
+    "name": "Boban Pantović",
+    "country": "SRB_M",
+    "category": "M65"
   },
   {
     "bib": "17",
-    "name": "1",
-    "country": "4",
-    "category": "Henrik Elsig Andersen"
-  },
-  {
-    "bib": "18",
-    "name": "4",
-    "country": "33",
-    "category": "Kyohei Yoshizawa"
+    "name": "Mario Čeliković",
+    "country": "CRO_M",
+    "category": "M40"
   },
   {
     "bib": "19",
-    "name": "1",
-    "country": "107",
-    "category": "Yuka Ikeda"
+    "name": "Merijn Geerts",
+    "country": "BEL_M",
+    "category": "M50"
   },
   {
     "bib": "2",
-    "name": "1",
-    "country": "24",
-    "category": "Megan Eckert"
+    "name": "Berit Jessen",
+    "country": "DEN_W",
+    "category": "W50"
   },
   {
     "bib": "20",
-    "name": "2",
-    "country": "W21",
-    "category": "Sharon Scholz"
+    "name": "Erwin Ostry",
+    "country": "AUT_M",
+    "category": "M60"
   },
   {
-    "bib": "21",
-    "name": "5",
-    "country": "22",
-    "category": "Hendra Siswanto"
+    "bib": "202",
+    "name": "Gábor Rakonczay",
+    "country": "HUN_M",
+    "category": "M45"
   },
   {
     "bib": "22",
-    "name": "5",
-    "country": "831",
-    "category": "Fernando Soriano Rubio"
+    "name": "Hendra Siswanto",
+    "country": "INA_M",
+    "category": "M45"
   },
   {
     "bib": "23",
-    "name": "2",
-    "country": "66",
-    "category": "Mikael Jonsson"
+    "name": "Daniel Stolarczyk",
+    "country": "POL_M",
+    "category": "M50"
   },
   {
     "bib": "24",
-    "name": "3",
-    "country": "76",
-    "category": "Louise Petersen"
+    "name": "Megan Eckert",
+    "country": "USA_W",
+    "category": "W40"
   },
   {
     "bib": "25",
-    "name": "2",
-    "country": "79",
-    "category": "Sumie Inagaki"
+    "name": "Guillermo Sainz de Baranda Fernández",
+    "country": "ESP_M",
+    "category": "M55"
   },
   {
     "bib": "26",
-    "name": "6",
-    "country": "8",
-    "category": "Harold Lintsen"
+    "name": "Christian Mauduit",
+    "country": "FRA_M",
+    "category": "M50"
+  },
+  {
+    "bib": "269",
+    "name": "Junko Shimada",
+    "country": "JPN_W",
+    "category": "W60"
   },
   {
     "bib": "27",
-    "name": "1",
-    "country": "28",
-    "category": "Magnus Hvid-Jacobsen"
+    "name": "Yoko Kikuchi",
+    "country": "JPN_W",
+    "category": "W70"
   },
   {
     "bib": "28",
-    "name": "3",
-    "country": "37",
-    "category": "Luke Ivory"
+    "name": "Magnus Hvid-Jacobsen",
+    "country": "DEN_M",
+    "category": "M30"
   },
   {
     "bib": "29",
-    "name": "3",
-    "country": "20",
-    "category": "Erwin Ostry"
-  },
-  {
-    "bib": "3",
-    "name": "2",
-    "country": "977",
-    "category": "Szabolcs Beda"
+    "name": "Mirita Hernández de León",
+    "country": "URU_W",
+    "category": "W60"
   },
   {
     "bib": "30",
-    "name": "1",
-    "country": "82",
-    "category": "Veronika Jurišić"
+    "name": "Petr Lekeš",
+    "country": "CZE_M",
+    "category": "M45"
   },
   {
     "bib": "31",
-    "name": "7",
-    "country": "95",
-    "category": "Sorin Andrici"
+    "name": "Jean-Michel Terme",
+    "country": "FRA_M",
+    "category": "M40"
+  },
+  {
+    "bib": "3100",
+    "name": "Baladev Pavol Saraz",
+    "country": "SVK_M",
+    "category": "M50"
   },
   {
     "bib": "32",
-    "name": "1",
-    "country": "71",
-    "category": "János Papp"
+    "name": "Imre Kõuts",
+    "country": "EST_M",
+    "category": "M55"
   },
   {
     "bib": "33",
-    "name": "3",
-    "country": "269",
-    "category": "Junko Shimada"
+    "name": "Kyohei Yoshizawa",
+    "country": "JPN_M",
+    "category": "M50"
   },
   {
     "bib": "34",
-    "name": "1",
-    "country": "78",
-    "category": "Radi Milev"
+    "name": "Steven Battle",
+    "country": "GBR_M",
+    "category": "M60"
   },
   {
     "bib": "35",
-    "name": "6",
-    "country": "87",
-    "category": "Hrvoje Vlašić"
+    "name": "Santiago Hitos Olivera",
+    "country": "ESP_M",
+    "category": "M65"
   },
   {
     "bib": "36",
-    "name": "1",
-    "country": "38",
-    "category": "Jean Louis Vidal"
+    "name": "Kathy Crilley",
+    "country": "GBR_W",
+    "category": "W75"
   },
   {
     "bib": "37",
-    "name": "8",
-    "country": "23",
-    "category": "Daniel Stolarczyk"
+    "name": "Luke Ivory",
+    "country": "GBR_M",
+    "category": "M40"
   },
   {
     "bib": "38",
-    "name": "4",
-    "country": "46",
-    "category": "Luis De Santiago"
+    "name": "Jean Louis Vidal",
+    "country": "FRA_M",
+    "category": "M70"
   },
   {
     "bib": "39",
-    "name": "2",
-    "country": "91",
-    "category": "Peter Brenner"
+    "name": "Andrzej Błaszkiewicz",
+    "country": "POL_M",
+    "category": "M70"
   },
   {
     "bib": "4",
-    "name": "3",
-    "country": "881",
-    "category": "Peter Schröder"
+    "name": "Henrik Elsig Andersen",
+    "country": "DEN_M",
+    "category": "M60"
   },
   {
     "bib": "40",
-    "name": "2",
-    "country": "55",
-    "category": "Anke Kütbach"
+    "name": "Mihaela Ivanova Englaro",
+    "country": "BUL_W",
+    "category": "W50"
   },
   {
     "bib": "41",
-    "name": "2",
-    "country": "86",
-    "category": "Maja Bonačić"
+    "name": "Lasse Skare Therkildsen",
+    "country": "DEN_M",
+    "category": "M50"
   },
   {
     "bib": "42",
-    "name": "2",
-    "country": "48",
-    "category": "Paul Vulturar"
-  },
-  {
-    "bib": "43",
-    "name": "4",
-    "country": "63",
-    "category": "Daniel Marcelo Hernández"
+    "name": "Heine Kærsgaard Laursen",
+    "country": "DEN_M",
+    "category": "M55"
   },
   {
     "bib": "44",
-    "name": "4",
-    "country": "80",
-    "category": "Yukari Nabeshima"
+    "name": "Mariana Nenu",
+    "country": "ROU_W",
+    "category": "W50"
   },
   {
     "bib": "45",
-    "name": "5",
-    "country": "14",
-    "category": "Klaus Pirker Jørgensen"
+    "name": "Michael de Oliveira Vorbeck",
+    "country": "DEN_M",
+    "category": "M45"
   },
   {
     "bib": "46",
-    "name": "5",
-    "country": "58",
-    "category": "Jenny Stengård"
+    "name": "Luis De Santiago",
+    "country": "ESP_M",
+    "category": "M55"
   },
   {
     "bib": "47",
-    "name": "7",
-    "country": "45",
-    "category": "Michael de Oliveira Vorbeck"
+    "name": "Marcela Bayerová",
+    "country": "CZE_W",
+    "category": "W50"
   },
   {
     "bib": "48",
-    "name": "2",
-    "country": "56",
-    "category": "Jenny Lindroth"
+    "name": "Paul Vulturar",
+    "country": "ROU_M",
+    "category": "M30"
   },
   {
     "bib": "49",
-    "name": "6",
-    "country": "40",
-    "category": "Mihaela Ivanova Englaro"
-  },
-  {
-    "bib": "5",
-    "name": "1",
-    "country": "31",
-    "category": "Jean-Michel Terme"
+    "name": "David Hoben",
+    "country": "GBR_M",
+    "category": "M70"
   },
   {
     "bib": "50",
-    "name": "8",
-    "country": "30",
-    "category": "Petr Lekeš"
+    "name": "Elemér Sümegi",
+    "country": "HUN_M",
+    "category": "M50"
   },
   {
     "bib": "51",
-    "name": "1",
-    "country": "9",
-    "category": "Raúl Nicolás Vidal"
+    "name": "Rudibert Beck",
+    "country": "GER_M",
+    "category": "M70"
   },
   {
     "bib": "52",
-    "name": "2",
-    "country": "69",
-    "category": "Sarah Perry"
+    "name": "Daniela Dilling",
+    "country": "GER_W",
+    "category": "W60"
   },
   {
     "bib": "53",
-    "name": "2",
-    "country": "102",
-    "category": "Anagnostis Kokonias"
+    "name": "Silke Gielen",
+    "country": "GER_W",
+    "category": "W65"
   },
   {
     "bib": "54",
-    "name": "3",
-    "country": "81",
-    "category": "Mara Guler"
+    "name": "Mireille Cormier",
+    "country": "FRA_W",
+    "category": "W65"
   },
   {
     "bib": "55",
-    "name": "3",
-    "country": "39",
-    "category": "Andrzej Błaszkiewicz"
+    "name": "Anke Kütbach",
+    "country": "GER_W",
+    "category": "W55"
   },
   {
     "bib": "56",
-    "name": "9",
-    "country": "3100",
-    "category": "Baladev Pavol Saraz"
+    "name": "Jenny Lindroth",
+    "country": "SWE_W",
+    "category": "W45"
   },
   {
     "bib": "57",
-    "name": "5",
-    "country": "606",
-    "category": "Mirko Antoljak"
+    "name": "Manuel Real Perez",
+    "country": "ESP_M",
+    "category": "M65"
   },
   {
     "bib": "58",
-    "name": "4",
-    "country": "68",
-    "category": "Krisztina Nagyné Bakucz"
+    "name": "Jenny Stengård",
+    "country": "SWE_W",
+    "category": "W50"
   },
   {
     "bib": "59",
-    "name": "6",
-    "country": "83",
-    "category": "Akitaka Miida"
+    "name": "Mia Thomsen",
+    "country": "SWE_W",
+    "category": "W55"
   },
   {
     "bib": "6",
-    "name": "4",
-    "country": "202",
-    "category": "Gábor Rakonczay"
+    "name": "Christina Molzbichler",
+    "country": "AUT_W",
+    "category": "W23"
   },
   {
     "bib": "60",
-    "name": "3",
-    "country": "90",
-    "category": "Maja Urban"
+    "name": "Ricardo Vidan",
+    "country": "ESP_M",
+    "category": "M80"
+  },
+  {
+    "bib": "600",
+    "name": "Bertalan Lesti",
+    "country": "HUN_M",
+    "category": "M45"
+  },
+  {
+    "bib": "606",
+    "name": "Mirko Antoljak",
+    "country": "CRO_M",
+    "category": "M55"
   },
   {
     "bib": "61",
-    "name": "3",
-    "country": "59",
-    "category": "Mia Thomsen"
-  },
-  {
-    "bib": "62",
-    "name": "6",
-    "country": "85",
-    "category": "Jung Hsi Fan"
+    "name": "Gary Jackets",
+    "country": "GBR_M",
+    "category": "M60"
   },
   {
     "bib": "63",
-    "name": "7",
-    "country": "10",
-    "category": "Flemming Blaabjerg"
-  },
-  {
-    "bib": "64",
-    "name": "1",
-    "country": "53",
-    "category": "Silke Gielen"
+    "name": "Daniel Marcelo Hernández",
+    "country": "ARG_M",
+    "category": "M60"
   },
   {
     "bib": "65",
-    "name": "9",
-    "country": "600",
-    "category": "Bertalan Lesti"
+    "name": "Rex Brillantes",
+    "country": "PHI_M",
+    "category": "M50"
   },
   {
     "bib": "66",
-    "name": "7",
-    "country": "32",
-    "category": "Imre Kõuts"
+    "name": "Mikael Jonsson",
+    "country": "SWE_M",
+    "category": "M60"
+  },
+  {
+    "bib": "666",
+    "name": "Diana Celeiro",
+    "country": "ARG_W",
+    "category": "W70"
   },
   {
     "bib": "67",
-    "name": "10",
-    "country": "75",
-    "category": "Carmelo García Ruiz"
+    "name": "Robert Brinck",
+    "country": "SWE_M",
+    "category": "M55"
   },
   {
     "bib": "68",
-    "name": "4",
-    "country": "72",
-    "category": "Yoko Okawa"
+    "name": "Krisztina Nagyné Bakucz",
+    "country": "HUN_W",
+    "category": "W60"
   },
   {
     "bib": "69",
-    "name": "1",
-    "country": "666",
-    "category": "Diana Celeiro"
+    "name": "Sarah Perry",
+    "country": "GBR_W",
+    "category": "W35"
   },
   {
     "bib": "7",
-    "name": "1",
-    "country": "73",
-    "category": "Zsuzsanna Maráz"
+    "name": "Daniel Trusca",
+    "country": "ROU_M",
+    "category": "M55"
   },
   {
     "bib": "70",
-    "name": "7",
-    "country": "101",
-    "category": "Melissa Montague"
+    "name": "Sheng Ming Wu",
+    "country": "TPE_M",
+    "category": "M60"
   },
   {
     "bib": "71",
-    "name": "10",
-    "country": "96",
-    "category": "Jaroslav Bohdal"
+    "name": "János Papp",
+    "country": "HUN_M",
+    "category": "M65"
+  },
+  {
+    "bib": "713",
+    "name": "David Kellner",
+    "country": "CZE_M",
+    "category": "M50"
   },
   {
     "bib": "72",
-    "name": "8",
-    "country": "34",
-    "category": "Steven Battle"
+    "name": "Yoko Okawa",
+    "country": "JPN_W",
+    "category": "W45"
   },
   {
     "bib": "73",
-    "name": "8",
-    "country": "11",
-    "category": "Michael Coughlan"
+    "name": "Zsuzsanna Maráz",
+    "country": "HUN_W",
+    "category": "W55"
   },
   {
     "bib": "74",
-    "name": "4",
-    "country": "89",
-    "category": "William Sichel"
+    "name": "Yumiko Iizumi",
+    "country": "JPN_W",
+    "category": "W65"
   },
   {
     "bib": "75",
-    "name": "4",
-    "country": "88",
-    "category": "Katie Unoki"
+    "name": "Carmelo García Ruiz",
+    "country": "ESP_M",
+    "category": "M45"
+  },
+  {
+    "bib": "751",
+    "name": "Frederick Francis Davis III",
+    "country": "USA_M",
+    "category": "M75"
   },
   {
     "bib": "76",
-    "name": "11",
-    "country": "84",
-    "category": "Juro Buljan"
+    "name": "Louise Petersen",
+    "country": "DEN_W",
+    "category": "W50"
   },
   {
     "bib": "77",
-    "name": "5",
-    "country": "92",
-    "category": "Heli Marjatta Lehtinen"
+    "name": "Miroslav Habel",
+    "country": "CZE_M",
+    "category": "M55"
   },
   {
     "bib": "78",
-    "name": "1",
-    "country": "60",
-    "category": "Ricardo Vidan"
+    "name": "Radi Milev",
+    "country": "BUL_M",
+    "category": "M75"
   },
   {
     "bib": "79",
-    "name": "8",
-    "country": "2",
-    "category": "Berit Jessen"
+    "name": "Sumie Inagaki",
+    "country": "JPN_W",
+    "category": "W60"
   },
   {
     "bib": "8",
-    "name": "1",
-    "country": "42",
-    "category": "Heine Kærsgaard Laursen"
+    "name": "Harold Lintsen",
+    "country": "NED_M",
+    "category": "M50"
   },
   {
     "bib": "80",
-    "name": "6",
-    "country": "105",
-    "category": "Yen Nguyen"
+    "name": "Yukari Nabeshima",
+    "country": "JPN_W",
+    "category": "W50"
   },
   {
     "bib": "81",
-    "name": "3",
-    "country": "94",
-    "category": "Jacques Morel"
+    "name": "Mara Guler",
+    "country": "ROU_W",
+    "category": "W45"
   },
   {
     "bib": "82",
-    "name": "4",
-    "country": "751",
-    "category": "Frederick Francis Davis III"
+    "name": "Veronika Jurišić",
+    "country": "CRO_W",
+    "category": "W45"
   },
   {
     "bib": "83",
-    "name": "12",
-    "country": "50",
-    "category": "Elemér Sümegi"
+    "name": "Akitaka Miida",
+    "country": "JPN_M",
+    "category": "M60"
+  },
+  {
+    "bib": "831",
+    "name": "Fernando Soriano Rubio",
+    "country": "ESP_M",
+    "category": "M50"
   },
   {
     "bib": "84",
-    "name": "9",
-    "country": "44",
-    "category": "Mariana Nenu"
+    "name": "Juro Buljan",
+    "country": "CRO_M",
+    "category": "M50"
   },
   {
     "bib": "85",
-    "name": "9",
-    "country": "77",
-    "category": "Miroslav Habel"
+    "name": "Jung Hsi Fan",
+    "country": "TPE_M",
+    "category": "M55"
   },
   {
     "bib": "86",
-    "name": "9",
-    "country": "70",
-    "category": "Sheng Ming Wu"
+    "name": "Maja Bonačić",
+    "country": "CRO_W",
+    "category": "W40"
   },
   {
     "bib": "87",
-    "name": "2",
-    "country": "57",
-    "category": "Manuel Real Perez"
+    "name": "Hrvoje Vlašić",
+    "country": "CRO_M",
+    "category": "M45"
   },
   {
     "bib": "88",
-    "name": "1",
-    "country": "6",
-    "category": "Christina Molzbichler"
+    "name": "Katie Unoki",
+    "country": "JPN_W",
+    "category": "W55"
+  },
+  {
+    "bib": "881",
+    "name": "Peter Schröder",
+    "country": "SWE_M",
+    "category": "M45"
   },
   {
     "bib": "89",
-    "name": "2",
-    "country": "103",
-    "category": "Soňa Macejáková"
+    "name": "William Sichel",
+    "country": "GBR_M",
+    "category": "M70"
   },
   {
     "bib": "9",
-    "name": "2",
-    "country": "7",
-    "category": "Daniel Trusca"
+    "name": "Raúl Nicolás Vidal",
+    "country": "ESP_M",
+    "category": "M23"
   },
   {
     "bib": "90",
-    "name": "10",
-    "country": "25",
-    "category": "Guillermo Sainz de Baranda Fernández"
+    "name": "Maja Urban",
+    "country": "CRO_W",
+    "category": "W40"
   },
   {
     "bib": "91",
-    "name": "1",
-    "country": "100",
-    "category": "Pál Bozó"
+    "name": "Peter Brenner",
+    "country": "SUI_M",
+    "category": "M70"
   },
   {
     "bib": "92",
-    "name": "7",
-    "country": "52",
-    "category": "Daniela Dilling"
+    "name": "Heli Marjatta Lehtinen",
+    "country": "FIN_W",
+    "category": "W60"
   },
   {
     "bib": "93",
-    "name": "8",
-    "country": "29",
-    "category": "Mirita Hernández de León"
+    "name": "Endymion Kasanardjo",
+    "country": "NED_M",
+    "category": "M55"
   },
   {
     "bib": "94",
-    "name": "11",
-    "country": "67",
-    "category": "Robert Brinck"
+    "name": "Jacques Morel",
+    "country": "FRA_M",
+    "category": "M75"
   },
   {
     "bib": "95",
-    "name": "2",
-    "country": "74",
-    "category": "Yumiko Iizumi"
+    "name": "Sorin Andrici",
+    "country": "ROU_M",
+    "category": "M50"
   },
   {
     "bib": "96",
-    "name": "11",
-    "country": "13",
-    "category": "György Keresztes"
+    "name": "Jaroslav Bohdal",
+    "country": "CZE_M",
+    "category": "M50"
   },
   {
-    "bib": "97",
-    "name": "13",
-    "country": "12",
-    "category": "Niklas Karlsson"
+    "bib": "977",
+    "name": "Szabolcs Beda",
+    "country": "HUN_M",
+    "category": "M45"
   },
   {
     "bib": "98",
-    "name": "14",
-    "country": "41",
-    "category": "Lasse Skare Therkildsen"
+    "name": "Bill Heldenbrand",
+    "country": "USA_M",
+    "category": "M80"
   },
   {
-    "bib": "99",
-    "name": "3",
-    "country": "16",
-    "category": "Boban Pantović"
+    "bib": "W21",
+    "name": "Sharon Scholz",
+    "country": "AUS_W",
+    "category": "W50"
   }
 ]
