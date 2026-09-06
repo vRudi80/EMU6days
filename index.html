@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EMU 6-Day Race – Live Race Analyzer</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <div>
+        <div class="eyebrow">XV. EMU 6-Day Race / GOMU 6-Day World Championship</div>
+        <h1>Live Race Analyzer</h1>
+        <p class="muted">Balatonfüred · 144H · 1 kör = 898,2 m</p>
+      </div>
+      <div id="status" class="status">Adatok betöltése…</div>
+    </header>
+
+    <section class="controls">
+      <label>Versenyző keresése
+        <input id="search" type="search" placeholder="Név vagy rajtszám…">
+      </label>
+      <label>Megjelenítés
+        <select id="limit">
+          <option value="10">Top 10</option>
+          <option value="20" selected>Top 20</option>
+          <option value="50">Top 50</option>
+          <option value="100">Top 100</option>
+          <option value="0">Mindenki</option>
+        </select>
+      </label>
+      <label class="check"><input id="hungarians" type="checkbox"> Csak magyarok</label>
+      <button id="reset">Szűrők törlése</button>
+    </section>
+
+    <section class="card chart-card">
+      <div class="chart-head">
+        <div>
+          <h2>Megtett táv az idő függvényében</h2>
+          <p class="muted">A vízszintes szakaszok pihenést/állást jeleznek.</p>
+        </div>
+        <div class="legend-note">Kattints egy névre a ki-/bekapcsoláshoz.</div>
+      </div>
+      <div class="chart-wrap"><canvas id="raceChart"></canvas></div>
+    </section>
+
+    <section class="card">
+      <h2>Aktuális állás</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Versenyző</th><th>Ország</th><th>Kategória</th><th>Kör</th><th>Km</th><th>Utolsó kör</th><th>Utolsó frissítés</th></tr></thead>
+          <tbody id="ranking"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <span>Adatforrás: Köridő</span>
+      <span id="updated"></span>
+    </footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
