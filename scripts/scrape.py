@@ -4,6 +4,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
@@ -13,6 +14,10 @@ LAP_URL = BASE + "/events/resultTableLaps.php?bib={bib}&rc=3600"
 ATHLETES_FILE = Path("data/athletes.json")
 RACE_FILE = Path("data/race.json")
 WORKERS = int(os.getenv("WORKERS", "16"))
+
+# Köridő displays lap read times in the race venue's local time.
+# Balatonfüred is Europe/Budapest (CEST, UTC+2 during this race).
+RACE_TIMEZONE = ZoneInfo("Europe/Budapest")
 
 session = requests.Session()
 session.headers.update({"User-Agent": "Mozilla/5.0 EMU-6-Day-Race-Analyzer/1.0"})
@@ -83,7 +88,10 @@ def parse_laps(bib):
             km = float(cells[1].replace(",", "."))
             lap_time = cells[2]
             read_time = cells[5]
-            dt = datetime.strptime(read_time, "%Y.%m.%d %H:%M:%S").replace(tzinfo=timezone.utc)
+            # Köridő's ReadTime is already venue-local time. Do NOT label it UTC.
+            # Attach the actual Balatonfüred timezone so the browser can display
+            # the correct local time without adding another +2 hours.
+            dt = datetime.strptime(read_time, "%Y.%m.%d %H:%M:%S").replace(tzinfo=RACE_TIMEZONE)
         except (ValueError, IndexError):
             continue
         rows.append({
