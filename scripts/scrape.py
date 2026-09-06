@@ -44,6 +44,9 @@ def load_previous_data():
 
 
 def parse_laps(bib):
+    # Keep bib as a string: Köridő can use numeric bibs above 500 as well as
+    # special bibs such as W21.
+    bib = str(bib)
     r = session.get(LAP_URL.format(bib=bib), timeout=30)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, "html.parser")
@@ -57,17 +60,14 @@ def parse_laps(bib):
             if key == "name":
                 name = cells[1]
             elif key in ("bib", "bibnumber", "bib number"):
-                try:
-                    bib_found = int(cells[1])
-                except ValueError:
-                    pass
+                bib_found = cells[1].strip()
 
     if not name:
         page_text = soup.get_text(" ", strip=True)
-        m = re.search(r"Name:\s*(.*?)\s+Bib:\s*(\d+)\s+Laps:\s*(\d+)", page_text)
+        m = re.search(r"Name:\s*(.*?)\s+Bib:\s*([^\s]+)\s+Laps:\s*(\d+)", page_text)
         if m:
             name = m.group(1).strip()
-            bib_found = int(m.group(2))
+            bib_found = m.group(2).strip()
 
     table = soup.find("table")
     if not table:
@@ -95,32 +95,35 @@ def parse_laps(bib):
 
     if not rows:
         return None
-    return {"bib": bib_found or bib, "name": name or f"Bib {bib}", "laps": rows}
+    return {"bib": str(bib_found or bib), "name": name or f"Bib {bib}", "laps": rows}
 
 
 def merge_athlete(meta, parsed, previous):
     result = dict(meta)
+    result["bib"] = str(meta["bib"])
     if previous:
         for key in ("name", "country", "category"):
             if previous.get(key) and not result.get(key):
                 result[key] = previous[key]
 
     if parsed:
-        # The Köridő individual page currently returns the complete lap history.
-        # Replace the stored history with that authoritative list, while the
-        # scraper only contacts the already discovered athlete pages.
         result["name"] = result.get("name") or parsed["name"]
-        result["points"] = [
-            {"lap": x["lap"], "t": x["readTime"], "km": x["km"]}
-            for x in parsed["laps"]
-        ]
+
+        # The current Köridő individual page returns the complete lap history.
+        # Merge by lap number so an already collected lap is never duplicated.
+        old_points = previous.get("points", []) if previous else []
+        points_by_lap = {int(p["lap"]): p for p in old_points if p.get("lap") is not None}
+        for x in parsed["laps"]:
+            points_by_lap[x["lap"]] = {"lap": x["lap"], "t": x["readTime"], "km": x["km"]}
+
+        points = [points_by_lap[k] for k in sorted(points_by_lap)]
+        result["points"] = points
         last = parsed["laps"][-1]
-        result["laps"] = len(parsed["laps"])
+        result["laps"] = len(points)
         result["km"] = last["km"]
         result["lastLap"] = last["lapTime"]
         result["lastReadTime"] = last["readTime"]
     else:
-        # Keep the athlete visible if a single request temporarily fails.
         result["points"] = previous.get("points", []) if previous else []
         result["laps"] = previous.get("laps", len(result["points"])) if previous else len(result["points"])
         result["km"] = previous.get("km", 0) if previous else 0
@@ -133,25 +136,25 @@ def merge_athlete(meta, parsed, previous):
 def main():
     discovered = load_discovered_athletes()
     previous_data = load_previous_data()
-    previous_by_bib = {int(a["bib"]): a for a in previous_data.get("athletes", [])}
+    previous_by_bib = {str(a["bib"]): a for a in previous_data.get("athletes", [])}
 
     print(f"Updating {len(discovered)} known athletes (no bib-range probing)")
 
     parsed_by_bib = {}
     with ThreadPoolExecutor(max_workers=WORKERS) as ex:
-        futures = {ex.submit(parse_laps, int(a["bib"])): int(a["bib"]) for a in discovered}
+        futures = {ex.submit(parse_laps, a["bib"]): str(a["bib"]) for a in discovered}
         for future in as_completed(futures):
             bib = futures[future]
             try:
                 parsed = future.result()
                 if parsed:
-                    parsed_by_bib[int(parsed["bib"])] = parsed
+                    parsed_by_bib[str(parsed["bib"])] = parsed
             except Exception as e:
                 print(f"bib {bib} failed: {e}")
 
     out = []
     for meta in discovered:
-        bib = int(meta["bib"])
+        bib = str(meta["bib"])
         out.append(merge_athlete(meta, parsed_by_bib.get(bib), previous_by_bib.get(bib)))
 
     out.sort(key=lambda x: x.get("km", 0), reverse=True)
