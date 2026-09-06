@@ -15,23 +15,29 @@ async function load() {
 }
 
 function countryCode(value) {
-  return String(value || "").trim().toUpperCase().slice(0, 3);
+  return String(value ?? "").trim().toUpperCase().substring(0, 3);
 }
 
 function isHungarian(value) {
-  return countryCode(value) === "HUN";
+  const country = String(value ?? "").trim().toUpperCase();
+  return country === "HUN" || country.startsWith("HUN_") || country.startsWith("HUN-");
 }
 
 function filteredAthletes() {
   const search = $("search").value.trim().toLowerCase();
   const hu = $("hungarians").checked;
-  let a = raceData.athletes.filter(x =>
-    (!search || x.name.toLowerCase().includes(search) || String(x.bib).includes(search)) &&
-    (!hu || isHungarian(x.country))
-  );
-  a.sort((x,y) => y.km - x.km);
+
+  let a = raceData.athletes.filter(x => {
+    const matchesSearch = !search ||
+      String(x.name ?? "").toLowerCase().includes(search) ||
+      String(x.bib ?? "").includes(search);
+    const matchesCountry = !hu || isHungarian(x.country);
+    return matchesSearch && matchesCountry;
+  });
+
+  a.sort((x,y) => Number(y.km) - Number(x.km));
   const limit = Number($("limit").value);
-  return limit ? a.slice(0,limit) : a;
+  return limit ? a.slice(0, limit) : a;
 }
 
 function render() {
@@ -77,6 +83,7 @@ function drawChart(athletes) {
     }
   });
 }
+
 // Chart.js time scale needs a date adapter. Load it once dynamically.
 if (!window._adapterLoaded) {
   window._adapterLoaded = true;
@@ -93,6 +100,15 @@ function drawTable(athletes) {
     <td>${escapeHtml(a.lastLap||"")}</td><td>${a.lastReadTime ? new Date(a.lastReadTime).toLocaleString("hu-HU") : ""}</td>
   </tr>`).join("");
 }
+
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-["search","limit","hungarians"].forEach(id=>$(id).addEventListener("input",render));
-$("reset").addEventListener("click",()=>{$("search").value="";$("limit").value="20";$("hungarians").checked=false;render()});
+
+$("search").addEventListener("input", render);
+$("limit").addEventListener("change", render);
+$("hungarians").addEventListener("change", render);
+$("reset").addEventListener("click",()=>{
+  $("search").value="";
+  $("limit").value="20";
+  $("hungarians").checked=false;
+  render();
+});
