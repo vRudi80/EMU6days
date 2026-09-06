@@ -11,6 +11,7 @@ async function load() {
   const r = await fetch("data/race.json?ts=" + Date.now(), {cache:"no-store"});
   if (!r.ok) throw new Error("A race.json nem tölthető be.");
   raceData = await r.json();
+  initializeTimeRange();
   render();
 }
 
@@ -40,6 +41,47 @@ function filteredAthletes() {
   return limit ? a.slice(0, limit) : a;
 }
 
+function getAllTimes() {
+  return raceData.athletes.flatMap(a => (a.points || []).map(p => new Date(p.t).getTime()))
+    .filter(Number.isFinite);
+}
+
+function initializeTimeRange() {
+  const times = getAllTimes();
+  if (!times.length) return;
+  const min = new Date(Math.min(...times));
+  const max = new Date(Math.max(...times));
+  $("rangeStart").value = toDateTimeLocal(min);
+  $("rangeEnd").value = toDateTimeLocal(max);
+}
+
+function toDateTimeLocal(date) {
+  const pad = n => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function getChartRange() {
+  const mode = $("timeRange").value;
+  const times = getAllTimes();
+  if (!times.length) return {};
+
+  const minTime = Math.min(...times);
+  const maxTime = Math.max(...times);
+
+  if (mode === "full") {
+    return {min: minTime, max: maxTime};
+  }
+
+  if (mode === "24h") {
+    return {min: Math.max(minTime, maxTime - 24 * 60 * 60 * 1000), max: maxTime};
+  }
+
+  const start = new Date($("rangeStart").value).getTime();
+  const end = new Date($("rangeEnd").value).getTime();
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start >= end) return {};
+  return {min: start, max: end};
+}
+
 function render() {
   const athletes = filteredAthletes();
   drawChart(athletes);
@@ -63,6 +105,8 @@ function drawChart(athletes) {
     tension: 0,
     spanGaps: true
   }));
+  const range = getChartRange();
+
   chart = new Chart(ctx,{
     type:"line",
     data:{datasets},
@@ -77,7 +121,7 @@ function drawChart(athletes) {
         }}
       },
       scales:{
-        x:{type:"time",time:{unit:"hour",displayFormats:{hour:"d. HH:mm"}},ticks:{color:"#94a3b8"},grid:{color:"#1f2b40"},title:{display:true,text:"Idő",color:"#94a3b8"}},
+        x:{type:"time",min:range.min,max:range.max,time:{unit:"hour",displayFormats:{hour:"d. HH:mm"}},ticks:{color:"#94a3b8"},grid:{color:"#1f2b40"},title:{display:true,text:"Idő",color:"#94a3b8"}},
         y:{beginAtZero:true,ticks:{color:"#94a3b8",callback:v=>v+" km"},grid:{color:"#1f2b40"},title:{display:true,text:"Megtett táv",color:"#94a3b8"}}
       }
     }
@@ -106,9 +150,18 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":
 $("search").addEventListener("input", render);
 $("limit").addEventListener("change", render);
 $("hungarians").addEventListener("change", render);
+$("timeRange").addEventListener("change", () => {
+  $("customRange").hidden = $("timeRange").value !== "custom";
+  if ($("timeRange").value === "custom") initializeTimeRange();
+  render();
+});
+$("applyRange").addEventListener("click", render);
 $("reset").addEventListener("click",()=>{
   $("search").value="";
   $("limit").value="20";
   $("hungarians").checked=false;
+  $("timeRange").value="24h";
+  $("customRange").hidden=true;
+  initializeTimeRange();
   render();
 });
