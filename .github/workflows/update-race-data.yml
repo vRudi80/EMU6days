@@ -7,8 +7,8 @@ on:
       - "scripts/**"
       - ".github/workflows/update-race-data.yml"
   schedule:
-    # Avoid the busiest GitHub Actions scheduler minutes (:00, :15, :30, :45).
-    - cron: "7,22,37,52 * * * *"
+    # Run every 5 minutes, offset from exact 5-minute boundaries.
+    - cron: "3-58/5 * * * *"
 
 permissions:
   contents: write
