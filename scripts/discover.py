@@ -23,7 +23,7 @@ def main():
         selector = "a[href*='resultTableLaps.php?bib=']"
         page.wait_for_function(
             "selector => document.querySelectorAll(selector).length > 0",
-            selector,
+            arg=selector,
             timeout=60000,
         )
 
