@@ -1,11 +1,11 @@
 import json
+import re
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 BASE = "https://korido.hu"
-# This is the live individual-results view that is visible in a normal browser.
-RESULT = BASE + "/2026EMU6_result?team=1"
+RESULT = BASE + "/2026EMU6_result?rc=3600&tbl=1"
 OUT = Path("data/athletes.json")
 
 
@@ -19,83 +19,139 @@ def main():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page(
-            viewport={"width": 1440, "height": 1200},
+            viewport={"width": 1600, "height": 1400},
             user_agent=(
                 "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
                 "(KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
             ),
         )
 
-        # The result table is populated client-side, so give the page time to
-        # finish its own JavaScript update cycle. Do not depend on a fragile
-        # wait_for_function signature or on a specific pagination state.
         page.goto(RESULT, wait_until="domcontentloaded", timeout=60000)
         try:
-            page.wait_for_load_state("networkidle", timeout=15000)
+            page.wait_for_load_state("networkidle", timeout=20000)
         except PlaywrightTimeoutError:
             pass
         page.wait_for_timeout(10000)
 
-        selector = "a[href*='resultTableLaps.php']"
-        count = page.locator(selector).count()
+        # The individual-results table is rendered client-side. In the live
+        # page the athlete name is not necessarily an <a>, so do not depend on
+        # resultTableLaps.php links being present.
+        rows = page.locator("table tbody tr")
+        count = rows.count()
 
-        # One reload helps when the live timing page initially renders before
-        # its table data request has completed.
-        if count == 0:
-            page.reload(wait_until="domcontentloaded", timeout=60000)
-            try:
-                page.wait_for_load_state("networkidle", timeout=15000)
-            except PlaywrightTimeoutError:
-                pass
-            page.wait_for_timeout(10000)
-            count = page.locator(selector).count()
-
-        if count == 0:
-            # Fail with useful diagnostics rather than silently producing an
-            # incomplete athlete list.
-            title = page.title()
-            body = clean(page.locator("body").inner_text())[:4000]
-            print(f"Discovery diagnostics: title={title!r}, links={count}")
-            print(body)
-            raise RuntimeError(
-                "No athlete lap links were rendered by the Köridő page. "
-                "The live result table may be temporarily unavailable."
+        # If the table is paginated by DataTables, temporarily switch it to
+        # show all rows. This is intentionally done in the browser because the
+        # page's data source is client-side.
+        try:
+            page.evaluate(
+                """
+                () => {
+                    if (window.jQuery && jQuery.fn && jQuery.fn.dataTable) {
+                        jQuery.fn.dataTable.tables({api: true}).each(function() {
+                            try { this.page.len(-1).draw(false); } catch (e) {}
+                        });
+                    }
+                }
+                """
             )
+            page.wait_for_timeout(3000)
+            count = rows.count()
+        except Exception:
+            pass
 
-        records = page.locator(selector).evaluate_all(
+        records = rows.evaluate_all(
             """
-            links => links.map(a => {
-                const href = a.getAttribute('href') || '';
-                const m = href.match(/resultTableLaps\\.php\\?bib=([^&#]+)/);
-                const row = a.closest('tr');
-                const cells = row ? Array.from(row.querySelectorAll('td')).map(x => (x.innerText || '').trim()) : [];
-                const nameCell = a.closest('td');
-                const nameIndex = nameCell && row ? Array.from(row.querySelectorAll('td')).indexOf(nameCell) : -1;
-                return {
-                    bib: m ? decodeURIComponent(m[1]) : null,
-                    name: (a.innerText || '').trim(),
-                    country: nameIndex >= 0 && cells[nameIndex + 1] ? cells[nameIndex + 1] : '',
-                    category: nameIndex >= 0 && cells[nameIndex + 2] ? cells[nameIndex + 2] : ''
-                };
+            trs => trs.map(tr => {
+                const cells = Array.from(tr.querySelectorAll('td'))
+                    .map(td => (td.innerText || '').trim());
+                return cells;
             })
             """
         )
+
+        # If DataTables pagination is still active, collect the visible pages
+        # by clicking its Next button until it becomes disabled.
+        seen_pages = set()
+        def collect_page():
+            current = rows.evaluate_all(
+                "trs => trs.map(tr => Array.from(tr.querySelectorAll('td')).map(td => (td.innerText || '').trim()))"
+            )
+            return current
+
+        all_rows = list(records)
+        for _ in range(30):
+            page_key = "\n".join("|".join(r) for r in collect_page())
+            if page_key in seen_pages:
+                break
+            seen_pages.add(page_key)
+
+            next_buttons = page.locator(
+                ".dataTables_paginate .next, .paginate_button.next, "
+                "button[aria-label*='Next'], a[aria-label*='Next']"
+            )
+            if next_buttons.count() == 0:
+                break
+            nxt = next_buttons.first
+            cls = (nxt.get_attribute("class") or "").lower()
+            disabled = nxt.is_disabled() if nxt.evaluate("el => 'disabled' in el") else False
+            if disabled or "disabled" in cls:
+                break
+            try:
+                nxt.click(timeout=3000)
+                page.wait_for_timeout(500)
+            except Exception:
+                break
+            all_rows.extend(collect_page())
+
+        if not all_rows:
+            title = page.title()
+            body = clean(page.locator("body").inner_text())[:6000]
+            print(f"Discovery diagnostics: title={title!r}, table_rows={count}")
+            print(body)
+            browser.close()
+            raise RuntimeError("No rendered athlete rows were found on the Köridő individual-results page.")
+
         browser.close()
 
     by_bib = {}
-    for item in records:
-        bib = clean(item.get("bib"))
-        if not bib:
+    bib_re = re.compile(r"^(?:\d+|[A-Za-z]+\d+)$")
+
+    for cells in all_rows:
+        if len(cells) < 5:
             continue
+
+        # Current header order is: Pos, Category pos, age-group pos,
+        # Bibnumber, Name, Country, Category, ... . Find the bib rather than
+        # relying on a hard-coded column index.
+        bib_index = None
+        for i, value in enumerate(cells[:8]):
+            if bib_re.fullmatch(clean(value)):
+                bib_index = i
+                break
+        if bib_index is None or bib_index + 1 >= len(cells):
+            continue
+
+        bib = clean(cells[bib_index])
+        name = clean(cells[bib_index + 1])
+        if not name or name.lower() in {"name", "country"}:
+            continue
+
+        country = clean(cells[bib_index + 2]) if bib_index + 2 < len(cells) else ""
+        category = clean(cells[bib_index + 3]) if bib_index + 3 < len(cells) else ""
+
         by_bib[bib] = {
             "bib": bib,
-            "name": clean(item.get("name")),
-            "country": clean(item.get("country")),
-            "category": clean(item.get("category")),
+            "name": name,
+            "country": country,
+            "category": category,
         }
 
-    athletes = sorted(by_bib.values(), key=lambda x: x["bib"])
-    if len(athletes) < 50:
+    athletes = list(by_bib.values())
+    athletes.sort(key=lambda x: x["bib"])
+
+    # The official race information reported 108 starters. Do not overwrite
+    # the stored discovery list with a partial table.
+    if len(athletes) < 100:
         raise RuntimeError(
             f"Discovery returned only {len(athletes)} athletes; refusing to save an incomplete list"
         )
