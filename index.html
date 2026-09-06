@@ -52,6 +52,26 @@
         </div>
         <div class="legend-note">Kattints egy névre a ki-/bekapcsoláshoz.</div>
       </div>
+
+      <div class="chart-filters">
+        <label>Időintervallum
+          <select id="timeRange">
+            <option value="24h" selected>Utolsó 24 óra</option>
+            <option value="full">Teljes verseny</option>
+            <option value="custom">Egyéni időszak</option>
+          </select>
+        </label>
+        <div id="customRange" class="custom-range" hidden>
+          <label>Kezdete
+            <input id="rangeStart" type="datetime-local">
+          </label>
+          <label>Vége
+            <input id="rangeEnd" type="datetime-local">
+          </label>
+          <button id="applyRange" type="button">Alkalmaz</button>
+        </div>
+      </div>
+
       <div class="chart-wrap"><canvas id="raceChart"></canvas></div>
     </section>
 
@@ -70,6 +90,6 @@
       <span id="updated"></span>
     </footer>
   </main>
-  <script src="app.js"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
