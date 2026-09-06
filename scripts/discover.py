@@ -1,6 +1,4 @@
 import json
-import os
-import re
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
@@ -22,13 +20,15 @@ def main():
         page = browser.new_page()
         page.goto(RESULT, wait_until="domcontentloaded", timeout=60000)
 
-        # The individual-result links are inserted/rendered by the page's JS.
+        # The individual-result links are rendered by the page's JavaScript.
+        selector = "a[href*='resultTableLaps.php?bib=']"
         page.wait_for_function(
-            "document.querySelectorAll('a[href*='resultTableLaps.php?bib=']').length > 0",
+            "selector => document.querySelectorAll(selector).length > 0",
+            selector,
             timeout=60000,
         )
 
-        records = page.locator("a[href*='resultTableLaps.php?bib=']").evaluate_all(
+        records = page.locator(selector).evaluate_all(
             """
             links => links.map(a => {
                 const href = a.getAttribute('href') || '';
