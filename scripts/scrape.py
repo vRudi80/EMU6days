@@ -15,14 +15,13 @@ BASE = "https://korido.hu"
 LAP_URL = BASE + "/events/resultTableLaps.php?bib={bib}&rc=3600"
 ATHLETES_FILE = Path("data/athletes.json")
 RACE_FILE = Path("data/race.json")
-# Köridő starts returning HTTP 500 when too many individual pages are requested
-# at once. Keep concurrency deliberately low and retry transient server errors.
-WORKERS = int(os.getenv("WORKERS", "4"))
-RETRIES = 4
+
+# Köridő can return HTTP 500 if too many individual pages are requested at once.
+# Eight workers gives useful throughput without hammering the server.
+WORKERS = int(os.getenv("WORKERS", "8"))
+RETRIES = 1
 RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 
-# Köridő displays lap read times in the race venue's local time.
-# Balatonfüred is Europe/Budapest (CEST, UTC+2 during this race).
 RACE_TIMEZONE = ZoneInfo("Europe/Budapest")
 
 session = requests.Session()
@@ -56,27 +55,25 @@ def load_previous_data():
 
 def fetch_page(bib):
     url = LAP_URL.format(bib=str(bib))
-    for attempt in range(RETRIES):
+    for attempt in range(RETRIES + 1):
         try:
-            response = session.get(url, timeout=30)
+            response = session.get(url, timeout=(5, 8))
             if response.status_code not in RETRYABLE_STATUS:
                 response.raise_for_status()
                 return response
-            print(f"bib {bib}: HTTP {response.status_code}, retry {attempt + 1}/{RETRIES}")
+            print(f"bib {bib}: HTTP {response.status_code}, attempt {attempt + 1}/{RETRIES + 1}")
         except requests.RequestException as e:
-            if attempt == RETRIES - 1:
+            print(f"bib {bib}: request failed, attempt {attempt + 1}/{RETRIES + 1}: {e}")
+            if attempt == RETRIES:
                 raise
-            print(f"bib {bib}: request failed, retry {attempt + 1}/{RETRIES}: {e}")
 
-        # Exponential backoff with small jitter to avoid synchronized retries.
-        time.sleep((1.5 * (2 ** attempt)) + random.uniform(0.0, 0.75))
+        if attempt < RETRIES:
+            time.sleep(1.0 + random.uniform(0.0, 0.5))
 
-    raise RuntimeError(f"Could not fetch bib {bib} after {RETRIES} attempts")
+    raise RuntimeError(f"Could not fetch bib {bib}")
 
 
 def parse_laps(bib):
-    # Keep bib as a string: Köridő can use numeric bibs above 500 as well as
-    # special bibs such as W21.
     bib = str(bib)
     r = fetch_page(bib)
     soup = BeautifulSoup(r.text, "html.parser")
@@ -113,18 +110,10 @@ def parse_laps(bib):
             km = float(cells[1].replace(",", "."))
             lap_time = cells[2]
             read_time = cells[5]
-            # Köridő's ReadTime is already venue-local time. Do NOT label it UTC.
-            # Attach the actual Balatonfüred timezone so the browser can display
-            # the correct local time without adding another +2 hours.
             dt = datetime.strptime(read_time, "%Y.%m.%d %H:%M:%S").replace(tzinfo=RACE_TIMEZONE)
         except (ValueError, IndexError):
             continue
-        rows.append({
-            "lap": lap,
-            "km": km,
-            "lapTime": lap_time,
-            "readTime": dt.isoformat(),
-        })
+        rows.append({"lap": lap, "km": km, "lapTime": lap_time, "readTime": dt.isoformat()})
 
     if not rows:
         return None
@@ -141,14 +130,10 @@ def merge_athlete(meta, parsed, previous):
 
     if parsed:
         result["name"] = result.get("name") or parsed["name"]
-
-        # The current Köridő individual page returns the complete lap history.
-        # Merge by lap number so an already collected lap is never duplicated.
         old_points = previous.get("points", []) if previous else []
         points_by_lap = {int(p["lap"]): p for p in old_points if p.get("lap") is not None}
         for x in parsed["laps"]:
             points_by_lap[x["lap"]] = {"lap": x["lap"], "t": x["readTime"], "km": x["km"]}
-
         points = [points_by_lap[k] for k in sorted(points_by_lap)]
         result["points"] = points
         last = parsed["laps"][-1]
@@ -171,7 +156,7 @@ def main():
     previous_data = load_previous_data()
     previous_by_bib = {str(a["bib"]): a for a in previous_data.get("athletes", [])}
 
-    print(f"Updating {len(discovered)} known athletes (workers={WORKERS})")
+    print(f"Updating {len(discovered)} known athletes (workers={WORKERS}, retries={RETRIES})")
 
     parsed_by_bib = {}
     with ThreadPoolExecutor(max_workers=WORKERS) as ex:
