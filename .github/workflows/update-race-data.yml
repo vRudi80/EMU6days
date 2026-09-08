@@ -13,9 +13,16 @@ on:
 permissions:
   contents: write
 
+# Never allow two race scrapes to run at the same time.
+# A newer 5-minute trigger cancels an older stuck run.
+concurrency:
+  group: emu6days-race-update
+  cancel-in-progress: true
+
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 6
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,6 +45,7 @@ jobs:
 
       - name: Scrape known athletes
         run: python scripts/scrape.py
+        timeout-minutes: 5
 
       - name: Commit updated data
         run: |
