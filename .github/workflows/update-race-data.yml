@@ -22,7 +22,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 8
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,19 +33,19 @@ jobs:
           python-version: "3.x"
 
       - name: Install scraper dependencies
-        run: pip install requests beautifulsoup4
+        run: |
+          pip install requests beautifulsoup4 playwright
+          python -m playwright install --with-deps chromium
 
       - name: Discover athletes once per discovery version
         if: ${{ !hashFiles('data/discovery.version') }}
         run: |
-          pip install playwright
-          python -m playwright install --with-deps chromium
           python scripts/discover.py
           echo "2" > data/discovery.version
 
       - name: Scrape known athletes
         run: python scripts/scrape.py
-        timeout-minutes: 5
+        timeout-minutes: 7
 
       - name: Commit updated data
         run: |
