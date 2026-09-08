@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import random
@@ -10,22 +11,29 @@ from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
+from playwright.async_api import async_playwright
 
 BASE = "https://korido.hu"
 LAP_URL = BASE + "/events/resultTableLaps.php?bib={bib}&rc=3600"
 ATHLETES_FILE = Path("data/athletes.json")
 RACE_FILE = Path("data/race.json")
 
-# Köridő can return HTTP 500 if too many individual pages are requested at once.
-# Eight workers gives useful throughput without hammering the server.
+# Köridő may return HTTP 500 to plain HTTP clients from hosted runner IPs.
+# Try normal requests first, then use a real Chromium browser for failed pages.
 WORKERS = int(os.getenv("WORKERS", "8"))
+BROWSER_WORKERS = int(os.getenv("BROWSER_WORKERS", "6"))
 RETRIES = 1
 RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 
 RACE_TIMEZONE = ZoneInfo("Europe/Budapest")
 
 session = requests.Session()
-session.headers.update({"User-Agent": "Mozilla/5.0 EMU-6-Day-Race-Analyzer/1.0"})
+session.headers.update({
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/151.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "hu-HU,hu;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Referer": BASE + "/2026EMU6_result?team=1",
+})
 
 
 def text(el):
@@ -53,30 +61,9 @@ def load_previous_data():
         return {"athletes": []}
 
 
-def fetch_page(bib):
-    url = LAP_URL.format(bib=str(bib))
-    for attempt in range(RETRIES + 1):
-        try:
-            response = session.get(url, timeout=(5, 8))
-            if response.status_code not in RETRYABLE_STATUS:
-                response.raise_for_status()
-                return response
-            print(f"bib {bib}: HTTP {response.status_code}, attempt {attempt + 1}/{RETRIES + 1}")
-        except requests.RequestException as e:
-            print(f"bib {bib}: request failed, attempt {attempt + 1}/{RETRIES + 1}: {e}")
-            if attempt == RETRIES:
-                raise
-
-        if attempt < RETRIES:
-            time.sleep(1.0 + random.uniform(0.0, 0.5))
-
-    raise RuntimeError(f"Could not fetch bib {bib}")
-
-
-def parse_laps(bib):
+def parse_html(bib, html):
     bib = str(bib)
-    r = fetch_page(bib)
-    soup = BeautifulSoup(r.text, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
 
     name = ""
     bib_found = None
@@ -120,6 +107,85 @@ def parse_laps(bib):
     return {"bib": str(bib_found or bib), "name": name or f"Bib {bib}", "laps": rows}
 
 
+def fetch_page(bib):
+    url = LAP_URL.format(bib=str(bib))
+    for attempt in range(RETRIES + 1):
+        try:
+            response = session.get(url, timeout=(5, 8))
+            if response.status_code not in RETRYABLE_STATUS:
+                response.raise_for_status()
+                return response.text
+            print(f"bib {bib}: HTTP {response.status_code}, attempt {attempt + 1}/{RETRIES + 1}")
+        except requests.RequestException as e:
+            print(f"bib {bib}: request failed, attempt {attempt + 1}/{RETRIES + 1}: {e}")
+            if attempt == RETRIES:
+                raise
+
+        if attempt < RETRIES:
+            time.sleep(1.0 + random.uniform(0.0, 0.5))
+
+    raise RuntimeError(f"Could not fetch bib {bib}")
+
+
+def parse_laps(bib):
+    html = fetch_page(bib)
+    return parse_html(bib, html)
+
+
+async def browser_fetch_one(page, bib):
+    url = LAP_URL.format(bib=str(bib))
+    for attempt in range(2):
+        try:
+            response = await page.goto(url, wait_until="domcontentloaded", timeout=15000)
+            status = response.status if response else 0
+            if status == 200:
+                html = await page.content()
+                parsed = parse_html(bib, html)
+                if parsed:
+                    return parsed
+            print(f"browser bib {bib}: HTTP {status}, attempt {attempt + 1}/2")
+        except Exception as e:
+            print(f"browser bib {bib}: {e}, attempt {attempt + 1}/2")
+        if attempt == 0:
+            await asyncio.sleep(1)
+    return None
+
+
+async def browser_fetch_failed(bibs):
+    if not bibs:
+        return {}
+
+    print(f"Browser fallback for {len(bibs)} athletes (workers={BROWSER_WORKERS})")
+    results = {}
+    semaphore = asyncio.Semaphore(BROWSER_WORKERS)
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+
+        async def worker(bib):
+            async with semaphore:
+                page = await browser.new_page(
+                    viewport={"width": 1440, "height": 1000},
+                    user_agent=(
+                        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                        "(KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+                    ),
+                    locale="hu-HU",
+                )
+                try:
+                    return bib, await browser_fetch_one(page, bib)
+                finally:
+                    await page.close()
+
+        values = await asyncio.gather(*(worker(bib) for bib in bibs))
+        await browser.close()
+
+    for bib, parsed in values:
+        if parsed:
+            results[str(parsed["bib"])] = parsed
+    return results
+
+
 def merge_athlete(meta, parsed, previous):
     result = dict(meta)
     result["bib"] = str(meta["bib"])
@@ -159,6 +225,7 @@ def main():
     print(f"Updating {len(discovered)} known athletes (workers={WORKERS}, retries={RETRIES})")
 
     parsed_by_bib = {}
+    failed_bibs = []
     with ThreadPoolExecutor(max_workers=WORKERS) as ex:
         futures = {ex.submit(parse_laps, a["bib"]): str(a["bib"]) for a in discovered}
         for future in as_completed(futures):
@@ -167,8 +234,20 @@ def main():
                 parsed = future.result()
                 if parsed:
                     parsed_by_bib[str(parsed["bib"])] = parsed
+                else:
+                    failed_bibs.append(bib)
             except Exception as e:
                 print(f"bib {bib} failed: {e}")
+                failed_bibs.append(bib)
+
+    success_ratio = len(parsed_by_bib) / len(discovered)
+    print(f"HTTP fetched {len(parsed_by_bib)}/{len(discovered)} athletes ({success_ratio:.0%})")
+
+    # Köridő currently returns HTTP 500 to plain requests from the GitHub
+    # runner, while Chromium can access the same individual result pages.
+    if failed_bibs:
+        browser_results = asyncio.run(browser_fetch_failed(failed_bibs))
+        parsed_by_bib.update(browser_results)
 
     success_ratio = len(parsed_by_bib) / len(discovered)
     print(f"Successfully fetched {len(parsed_by_bib)}/{len(discovered)} athletes ({success_ratio:.0%})")
