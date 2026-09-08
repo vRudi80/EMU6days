@@ -1,6 +1,8 @@
 import json
 import os
+import random
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
@@ -13,7 +15,11 @@ BASE = "https://korido.hu"
 LAP_URL = BASE + "/events/resultTableLaps.php?bib={bib}&rc=3600"
 ATHLETES_FILE = Path("data/athletes.json")
 RACE_FILE = Path("data/race.json")
-WORKERS = int(os.getenv("WORKERS", "16"))
+# Köridő starts returning HTTP 500 when too many individual pages are requested
+# at once. Keep concurrency deliberately low and retry transient server errors.
+WORKERS = int(os.getenv("WORKERS", "4"))
+RETRIES = 4
+RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 
 # Köridő displays lap read times in the race venue's local time.
 # Balatonfüred is Europe/Budapest (CEST, UTC+2 during this race).
@@ -48,12 +54,31 @@ def load_previous_data():
         return {"athletes": []}
 
 
+def fetch_page(bib):
+    url = LAP_URL.format(bib=str(bib))
+    for attempt in range(RETRIES):
+        try:
+            response = session.get(url, timeout=30)
+            if response.status_code not in RETRYABLE_STATUS:
+                response.raise_for_status()
+                return response
+            print(f"bib {bib}: HTTP {response.status_code}, retry {attempt + 1}/{RETRIES}")
+        except requests.RequestException as e:
+            if attempt == RETRIES - 1:
+                raise
+            print(f"bib {bib}: request failed, retry {attempt + 1}/{RETRIES}: {e}")
+
+        # Exponential backoff with small jitter to avoid synchronized retries.
+        time.sleep((1.5 * (2 ** attempt)) + random.uniform(0.0, 0.75))
+
+    raise RuntimeError(f"Could not fetch bib {bib} after {RETRIES} attempts")
+
+
 def parse_laps(bib):
     # Keep bib as a string: Köridő can use numeric bibs above 500 as well as
     # special bibs such as W21.
     bib = str(bib)
-    r = session.get(LAP_URL.format(bib=bib), timeout=30)
-    r.raise_for_status()
+    r = fetch_page(bib)
     soup = BeautifulSoup(r.text, "html.parser")
 
     name = ""
@@ -146,7 +171,7 @@ def main():
     previous_data = load_previous_data()
     previous_by_bib = {str(a["bib"]): a for a in previous_data.get("athletes", [])}
 
-    print(f"Updating {len(discovered)} known athletes (no bib-range probing)")
+    print(f"Updating {len(discovered)} known athletes (workers={WORKERS})")
 
     parsed_by_bib = {}
     with ThreadPoolExecutor(max_workers=WORKERS) as ex:
@@ -159,6 +184,14 @@ def main():
                     parsed_by_bib[str(parsed["bib"])] = parsed
             except Exception as e:
                 print(f"bib {bib} failed: {e}")
+
+    success_ratio = len(parsed_by_bib) / len(discovered)
+    print(f"Successfully fetched {len(parsed_by_bib)}/{len(discovered)} athletes ({success_ratio:.0%})")
+    if success_ratio < 0.90:
+        raise RuntimeError(
+            f"Only {len(parsed_by_bib)}/{len(discovered)} athlete pages were fetched; "
+            "refusing to publish potentially stale race data"
+        )
 
     out = []
     for meta in discovered:
